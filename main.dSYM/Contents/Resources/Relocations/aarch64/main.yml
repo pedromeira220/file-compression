@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/pedromeira/Desktop/Projetos/faculdade/semestre-03/estrutura-de-dados-2/compressao-arquivos/main'
+relocations:     []
+...
