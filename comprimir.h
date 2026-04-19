@@ -2,8 +2,8 @@
 #define COMPRIMIR_H
 
 #include <stdio.h>
-#include "fila_prioridade.h"
+#include "huffman.h"
 
-FilaPrioridade* comprimir(FILE* arquivo);
+ArvoreHuffman* comprimir(FILE* arquivo);
 
 #endif

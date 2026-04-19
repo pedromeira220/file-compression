@@ -14,9 +14,9 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    FilaPrioridade* fila = comprimir(arquivo);
+    ArvoreHuffman* arvore = comprimir(arquivo);
 
     fclose(arquivo);
-    destruirFilaPrioridade(fila);
+    free(arvore);
     return 0;
 }
