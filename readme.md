@@ -4,7 +4,7 @@
 
 1. Processo de Compactação
    1. Levantamento da frequência dos caracteres
-   2. Ordenação e priorização dos caracteres com base na ocorrência do texto
+   2. Ordenação e priorização dos bytes com base na ocorrência no arquivo
    3. Construção da Árvore de Huffman baseado na lista priorizada
    4. Iteração pela Árvore de Huffman para determinar os novos códigos
    5. Compactação do arquivo usando os novos códigos
@@ -47,15 +47,30 @@ Com 8 bits você consegue representar 2⁸ = **256 combinações possíveis**:
   - Uma vez que o elemento esta na fila, a retirada é normal
 - O que muda da fila de prioridade para normal é a **entrada**
 ## 1. Levantamento da frequência dos caracteres
-1. Identifique os caracteres presentes no arquivo
-2. Identifique a frequência de cada um dos caracteres
-**Notas**
-- No final, faça um print da fila
-## 2. Ordenação e priorização dos caracteres com base na ocorrência do texto
-1. Crie nodos de árvore binária para cada caracter contendo char/freq
+1. Identifique os bytes presentes no arquivo
+2. Identifique a frequência de cada um dos bytes
+
+**Saída**
+[
+   {
+      "byte": 69,
+      "frequencia": 10
+   }
+]
+
+## 2. Ordenação e priorização dos byte com base na ocorrência no arquivo
+1. Crie nodos de árvore binária para cada byte contendo byte/freq
 2. Coloque os nos em uma fila de prioridade. Quanto menor a frequência, maior será a prioridade na fila 
+
 **Notas**
 - Os nodos entram na fila sempre exatamente um antes de um nodo com frequencia menor ou igual a ele
+
+**Entradas**
+- Recebe a saída do processo 1.1
+
+**Saída**
+- Retornar a fila de prioridade com os nodos da árvore de Huffman
+
 ## 3. Construção da Árvore de Huffman baseado na lista priorizada
 1. Enquanto a fila contiver dois ou mais nodos
    1. Crie um novo nodo 

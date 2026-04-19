@@ -1,5 +1,7 @@
 # include <stdio.h>
 
+// TODO: O main.c só deve chamar as funções
+
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         printf("Uso: %s <arquivo>\n", argv[0]);
@@ -15,7 +17,7 @@ int main(int argc, char* argv[]) {
 
     unsigned char byte;
     while (fread(&byte, 1, 1, f) == 1) {
-      printf("%c", byte);
+        printf("%c", byte);
     }
 
     printf("\n");
