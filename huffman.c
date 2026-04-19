@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "huffman.h"
 
 Nodo* criarNodo(unsigned char byte, unsigned int frequency) {
