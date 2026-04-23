@@ -6,6 +6,6 @@ typedef struct {
     int frequencia;
 } FreqByte;
  
-int ContarFrequencia(const char *caminho, FreqByte saida[256]);
+int ContarFrequencia(const char *caminho, FreqByte saida[256]);git
 
 #endif
