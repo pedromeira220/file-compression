@@ -1,5 +1,5 @@
-#ifndef meus_tipos
-#define meus_tipos
+#ifndef MEUSTIPOS
+#define MEUSTIPOS
 
 // tipos inteiros
 typedef char I8; // de -128 a 127
