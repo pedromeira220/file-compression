@@ -22,12 +22,14 @@ static void gerarCaminhoSaida(const char *entrada, char *saida, int maxLen) {
         strncat(saida, "_descomprimido", maxLen - len - 1);
 }
 
-int descomprimir(const char *caminhoEntrada, ArvoreHuffman *arvore, const char *caminhoSaida) {
-    if (!arvore || !arvore->raiz) {
-        fprintf(stderr, "Arvore de Huffman invalida.\n");
-        return -1;
-    }
+static void liberarArvore(Nodo *nodo) {
+    if (!nodo) return;
+    liberarArvore(nodo->filhoEsquerdo);
+    liberarArvore(nodo->filhoDireito);
+    free(nodo);
+}
 
+int descomprimir(const char *caminhoEntrada, const char *caminhoSaida) {
     FILE *entrada = fopen(caminhoEntrada, "rb");
     if (!entrada) {
         fprintf(stderr, "Erro ao abrir: %s\n", caminhoEntrada);
@@ -36,17 +38,52 @@ int descomprimir(const char *caminhoEntrada, ArvoreHuffman *arvore, const char *
 
     U32 numEntradas = ler4bytes(entrada);
     if (numEntradas == 0 || numEntradas > 256) {
-        fprintf(stderr, "Cabecalho invalido.\n");
+        fprintf(stderr, "Cabecalho invalido: %u entradas.\n", numEntradas);
+        fclose(entrada);
+        return -1;
+    }
+
+    /* Reconstrói a árvore de Huffman a partir dos códigos no header */
+    Nodo *raiz = criarNodo(0, 0);
+    if (!raiz) {
         fclose(entrada);
         return -1;
     }
 
     for (U32 i = 0; i < numEntradas; i++) {
+        unsigned char byteVal;
         unsigned char compByte;
-        fseek(entrada, 1, SEEK_CUR);
+        fread(&byteVal, 1, 1, entrada);
         fread(&compByte, 1, 1, entrada);
-        int numBytesCod = ((int)compByte + 7) / 8;
-        fseek(entrada, numBytesCod, SEEK_CUR);
+
+        int comprimento = (int)compByte;
+        int numBytesCod = (comprimento + 7) / 8;
+
+        unsigned char *codBytes = (unsigned char *)calloc(numBytesCod + 1, 1);
+        if (!codBytes) {
+            liberarArvore(raiz);
+            fclose(entrada);
+            return -1;
+        }
+        if (numBytesCod > 0)
+            fread(codBytes, 1, numBytesCod, entrada);
+
+        /* Percorre/cria nodos na árvore seguindo cada bit do código */
+        Nodo *atual = raiz;
+        for (int b = 0; b < comprimento; b++) {
+            int bit = (codBytes[b / 8] >> (7 - (b % 8))) & 1;
+            if (bit == 0) {
+                if (!atual->filhoEsquerdo)
+                    atual->filhoEsquerdo = criarNodo(0, 0);
+                atual = atual->filhoEsquerdo;
+            } else {
+                if (!atual->filhoDireito)
+                    atual->filhoDireito = criarNodo(0, 0);
+                atual = atual->filhoDireito;
+            }
+        }
+        atual->byte = byteVal;
+        free(codBytes);
     }
 
     U32 totalBitsUteis = ler4bytes(entrada);
@@ -56,13 +93,15 @@ int descomprimir(const char *caminhoEntrada, ArvoreHuffman *arvore, const char *
     long tamanhoCorpo = ftell(entrada) - posCorpo;
     fseek(entrada, posCorpo, SEEK_SET);
 
-    unsigned char *corpo = (unsigned char *)malloc(tamanhoCorpo);
+    unsigned char *corpo = (unsigned char *)malloc(tamanhoCorpo > 0 ? tamanhoCorpo : 1);
     if (!corpo) {
         fprintf(stderr, "Erro de alocacao de memoria.\n");
+        liberarArvore(raiz);
         fclose(entrada);
         return -1;
     }
-    fread(corpo, 1, tamanhoCorpo, entrada);
+    if (tamanhoCorpo > 0)
+        fread(corpo, 1, tamanhoCorpo, entrada);
     fclose(entrada);
 
     char saidaPath[1024];
@@ -77,10 +116,11 @@ int descomprimir(const char *caminhoEntrada, ArvoreHuffman *arvore, const char *
     if (!saida) {
         fprintf(stderr, "Erro ao criar: %s\n", saidaPath);
         free(corpo);
+        liberarArvore(raiz);
         return -1;
     }
 
-    Nodo *atual = arvore->raiz;
+    Nodo *atual = raiz;
     U32 bitsProcessados = 0;
 
     for (long byteIdx = 0; byteIdx < tamanhoCorpo && bitsProcessados < totalBitsUteis; byteIdx++) {
@@ -93,7 +133,7 @@ int descomprimir(const char *caminhoEntrada, ArvoreHuffman *arvore, const char *
 
             if (!atual->filhoEsquerdo && !atual->filhoDireito) {
                 fwrite(&atual->byte, 1, 1, saida);
-                atual = arvore->raiz;
+                atual = raiz;
             }
 
             bitsProcessados++;
@@ -102,6 +142,7 @@ int descomprimir(const char *caminhoEntrada, ArvoreHuffman *arvore, const char *
 
     fclose(saida);
     free(corpo);
+    liberarArvore(raiz);
 
     printf("Arquivo descomprimido: %s\n", saidaPath);
     return 0;

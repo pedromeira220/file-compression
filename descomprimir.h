@@ -4,6 +4,6 @@
 #include "huffman.h"
 #include "meus_tipos.h"
 
-int descomprimir(const char *caminhoEntrada, ArvoreHuffman *arvore, const char *caminhoSaida);
+int descomprimir(const char *caminhoEntrada, const char *caminhoSaida);
 
 #endif
